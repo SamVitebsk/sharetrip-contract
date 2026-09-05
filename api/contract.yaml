@@ -1,0 +1,395 @@
+openapi: 3.0.3
+info:
+  title: ShareTrip Contract Service API
+  version: 0.1.0
+  description: API сервиса договорных условий и проверки доступности услуг для компаний.
+servers:
+  - url: /
+    description: Service base URL
+security: []
+tags:
+  - name: Contracts
+    description: Договоры компаний и проверка доступности услуг.
+paths:
+  /contracts:
+    post:
+      tags:
+        - Contracts
+      operationId: createContract
+      summary: Создать договор для компании
+      description: Создаёт договор компании со сроком действия и списком услуг.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateContractRequest"
+      responses:
+        "201":
+          description: Договор создан.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateContractResponse"
+        "400":
+          description: Некорректный запрос.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Нарушено бизнес-ограничение договора.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /contracts/{contractId}:
+    get:
+      tags:
+        - Contracts
+      operationId: getContract
+      summary: Получить договор по идентификатору
+      description: Возвращает договор с его статусом, сроком действия и услугами.
+      parameters:
+        - $ref: "#/components/parameters/ContractId"
+      responses:
+        "200":
+          description: Договор найден.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Contract"
+        "404":
+          description: Договор не найден.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /companies/{companyId}/active-contract:
+    get:
+      tags:
+        - Contracts
+      operationId: getCompanyActiveContract
+      summary: Получить активный договор компании
+      description: Возвращает активный договор компании, если он существует.
+      parameters:
+        - $ref: "#/components/parameters/CompanyId"
+      responses:
+        "200":
+          description: Активный договор найден.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Contract"
+        "404":
+          description: Активный договор компании не найден.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /contracts/{contractId}/sign:
+    post:
+      tags:
+        - Contracts
+      operationId: signContract
+      summary: Подписать договор
+      description: Переводит договор из статуса `draft` в статус `active`.
+      parameters:
+        - $ref: "#/components/parameters/ContractId"
+      responses:
+        "200":
+          description: Договор подписан.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Contract"
+        "404":
+          description: Договор не найден.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Договор нельзя подписать в текущем состоянии.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /contracts/{contractId}/suspend:
+    post:
+      tags:
+        - Contracts
+      operationId: suspendContract
+      summary: Приостановить договор
+      description: Переводит активный договор в статус `suspended`.
+      parameters:
+        - $ref: "#/components/parameters/ContractId"
+      responses:
+        "200":
+          description: Договор приостановлен.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Contract"
+        "404":
+          description: Договор не найден.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Договор нельзя приостановить в текущем состоянии.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /contracts/{contractId}/resume:
+    post:
+      tags:
+        - Contracts
+      operationId: resumeContract
+      summary: Возобновить договор
+      description: Переводит приостановленный договор обратно в статус `active`.
+      parameters:
+        - $ref: "#/components/parameters/ContractId"
+      responses:
+        "200":
+          description: Договор возобновлён.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Contract"
+        "404":
+          description: Договор не найден.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Договор нельзя возобновить в текущем состоянии.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /contracts/{contractId}/terminate:
+    post:
+      tags:
+        - Contracts
+      operationId: terminateContract
+      summary: Расторгнуть договор
+      description: Переводит договор в финальный статус `terminated`.
+      parameters:
+        - $ref: "#/components/parameters/ContractId"
+      responses:
+        "200":
+          description: Договор расторгнут.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Contract"
+        "404":
+          description: Договор не найден.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Договор нельзя расторгнуть в текущем состоянии.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /companies/{companyId}/services/{serviceCode}/availability-check:
+    post:
+      tags:
+        - Contracts
+      operationId: checkServiceAvailability
+      summary: Проверить доступность услуги для компании
+      description: Возвращает бизнес-решение, может ли компания использовать указанную услугу.
+      parameters:
+        - $ref: "#/components/parameters/CompanyId"
+        - $ref: "#/components/parameters/ServiceCode"
+      responses:
+        "200":
+          description: Решение о доступности услуги принято.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CheckServiceAvailabilityResponse"
+        "400":
+          description: Некорректный код услуги или идентификатор компании.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+components:
+  parameters:
+    ContractId:
+      name: contractId
+      in: path
+      required: true
+      description: Идентификатор договора.
+      schema:
+        type: string
+        format: uuid
+    CompanyId:
+      name: companyId
+      in: path
+      required: true
+      description: Идентификатор компании.
+      schema:
+        type: string
+        format: uuid
+    ServiceCode:
+      name: serviceCode
+      in: path
+      required: true
+      description: Код проверяемой услуги.
+      schema:
+        $ref: "#/components/schemas/ServiceCode"
+  schemas:
+    Contract:
+      type: object
+      required:
+        - id
+        - companyId
+        - status
+        - validFrom
+        - services
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Идентификатор договора.
+        companyId:
+          type: string
+          format: uuid
+          description: Идентификатор компании.
+        status:
+          $ref: "#/components/schemas/ContractStatus"
+        validFrom:
+          type: string
+          format: date-time
+          description: Дата начала действия договора.
+        validUntil:
+          type: string
+          format: date-time
+          nullable: true
+          description: Дата окончания действия договора. Если не указана, договор бессрочный.
+        services:
+          type: array
+          description: Услуги, указанные в договоре.
+          items:
+            $ref: "#/components/schemas/ContractService"
+        createdAt:
+          type: string
+          format: date-time
+          description: Дата создания договора.
+        updatedAt:
+          type: string
+          format: date-time
+          description: Дата последнего обновления договора.
+      additionalProperties: false
+    ContractStatus:
+      type: string
+      description: Статус договора.
+      enum:
+        - draft
+        - active
+        - suspended
+        - terminated
+    ServiceCode:
+      type: string
+      description: Код услуги, доступность которой регулируется договором.
+      enum:
+        - tripCreation
+        - tripParticipants
+        - notifications
+    ContractService:
+      type: object
+      required:
+        - serviceCode
+        - allowed
+      properties:
+        serviceCode:
+          $ref: "#/components/schemas/ServiceCode"
+        allowed:
+          type: boolean
+          description: Разрешена ли услуга по договору.
+      additionalProperties: false
+    CreateContractRequest:
+      type: object
+      required:
+        - companyId
+        - validFrom
+        - services
+      properties:
+        companyId:
+          type: string
+          format: uuid
+          description: Компания, для которой создаётся договор.
+        validFrom:
+          type: string
+          format: date-time
+          description: Дата начала действия договора.
+        validUntil:
+          type: string
+          format: date-time
+          nullable: true
+          description: Дата окончания действия договора. Если не указана, договор бессрочный.
+        services:
+          type: array
+          minItems: 1
+          description: Услуги, включённые в договор.
+          items:
+            $ref: "#/components/schemas/ContractService"
+      additionalProperties: false
+    CreateContractResponse:
+      type: object
+      required:
+        - contract
+      properties:
+        contract:
+          $ref: "#/components/schemas/Contract"
+      additionalProperties: false
+    CheckServiceAvailabilityResponse:
+      type: object
+      required:
+        - allowed
+      properties:
+        allowed:
+          type: boolean
+          description: Доступна ли услуга компании.
+        reason:
+          type: string
+          nullable: true
+          description: Причина отказа, если услуга недоступна.
+          enum:
+            - activeContractNotFound
+            - contractNotStarted
+            - contractExpired
+            - contractSuspended
+            - contractTerminated
+            - serviceNotInContract
+            - serviceDisabled
+        contractId:
+          type: string
+          format: uuid
+          nullable: true
+          description: Договор, на основании которого принято решение.
+      additionalProperties: false
+    ErrorResponse:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          description: Машиночитаемый код ошибки.
+        message:
+          type: string
+          description: Человекочитаемое описание ошибки.
+      additionalProperties: false
