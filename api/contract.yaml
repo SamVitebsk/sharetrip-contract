@@ -65,6 +65,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+        "501":
+          description: Операция пока не реализована.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /companies/{companyId}/active-contract:
     get:
       tags:
@@ -87,6 +93,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+        "501":
+          description: Операция пока не реализована.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /contracts/{contractId}/sign:
     post:
       tags:
@@ -102,7 +114,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Contract"
+                $ref: "#/components/schemas/SignContractResponse"
+        "400":
+          description: Некорректный идентификатор договора.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: Договор не найден.
           content:
@@ -143,6 +161,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+        "501":
+          description: Операция пока не реализована.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /contracts/{contractId}/resume:
     post:
       tags:
@@ -167,6 +191,12 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
         "409":
           description: Договор нельзя возобновить в текущем состоянии.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "501":
+          description: Операция пока не реализована.
           content:
             application/json:
               schema:
@@ -199,6 +229,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+        "501":
+          description: Операция пока не реализована.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /companies/{companyId}/services/{serviceCode}/availability-check:
     post:
       tags:
@@ -218,6 +254,12 @@ paths:
                 $ref: "#/components/schemas/CheckServiceAvailabilityResponse"
         "400":
           description: Некорректный код услуги или идентификатор компании.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "501":
+          description: Операция пока не реализована.
           content:
             application/json:
               schema:
@@ -347,6 +389,14 @@ components:
             $ref: "#/components/schemas/ContractService"
       additionalProperties: false
     CreateContractResponse:
+      type: object
+      required:
+        - contract
+      properties:
+        contract:
+          $ref: "#/components/schemas/Contract"
+      additionalProperties: false
+    SignContractResponse:
       type: object
       required:
         - contract
