@@ -1,0 +1,28 @@
+post:
+  tags:
+    - Contracts
+  operationId: checkServiceAvailability
+  summary: Проверить доступность услуги для компании
+  description: Возвращает бизнес-решение, может ли компания использовать указанную услугу.
+  parameters:
+    - $ref: "../contract.yaml#/components/parameters/CompanyId"
+    - $ref: "../contract.yaml#/components/parameters/ServiceCode"
+  responses:
+    "200":
+      description: Решение о доступности услуги принято.
+      content:
+        application/json:
+          schema:
+            $ref: "../contract.yaml#/components/schemas/CheckServiceAvailabilityResponse"
+    "400":
+      description: Некорректный код услуги или идентификатор компании.
+      content:
+        application/json:
+          schema:
+            $ref: "../contract.yaml#/components/schemas/ErrorResponse"
+    "501":
+      description: Операция пока не реализована.
+      content:
+        application/json:
+          schema:
+            $ref: "../contract.yaml#/components/schemas/ErrorResponse"

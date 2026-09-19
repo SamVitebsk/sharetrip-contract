@@ -479,20 +479,20 @@ func RegisterHandlersWithOptions(router fiber.Router, si ServerInterface, option
 		router.Use(fiber.Handler(m))
 	}
 
+	router.Get(options.BaseURL+"/companies/:companyId/active-contract", wrapper.GetCompanyActiveContract)
+
+	router.Post(options.BaseURL+"/companies/:companyId/services/:serviceCode/availability-check", wrapper.CheckServiceAvailability)
+
 	router.Post(options.BaseURL+"/contracts", wrapper.CreateContract)
 
 	router.Get(options.BaseURL+"/contracts/:contractId", wrapper.GetContract)
 
-	router.Get(options.BaseURL+"/companies/:companyId/active-contract", wrapper.GetCompanyActiveContract)
+	router.Post(options.BaseURL+"/contracts/:contractId/resume", wrapper.ResumeContract)
 
 	router.Post(options.BaseURL+"/contracts/:contractId/sign", wrapper.SignContract)
 
 	router.Post(options.BaseURL+"/contracts/:contractId/suspend", wrapper.SuspendContract)
 
-	router.Post(options.BaseURL+"/contracts/:contractId/resume", wrapper.ResumeContract)
-
 	router.Post(options.BaseURL+"/contracts/:contractId/terminate", wrapper.TerminateContract)
-
-	router.Post(options.BaseURL+"/companies/:companyId/services/:serviceCode/availability-check", wrapper.CheckServiceAvailability)
 
 }

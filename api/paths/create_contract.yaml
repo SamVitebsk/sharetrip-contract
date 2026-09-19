@@ -1,0 +1,31 @@
+post:
+  tags:
+    - Contracts
+  operationId: createContract
+  summary: Создать договор для компании
+  description: Создаёт договор компании со сроком действия и списком услуг.
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: "../contract.yaml#/components/schemas/CreateContractRequest"
+  responses:
+    "201":
+      description: Договор создан.
+      content:
+        application/json:
+          schema:
+            $ref: "../contract.yaml#/components/schemas/CreateContractResponse"
+    "400":
+      description: Некорректный запрос.
+      content:
+        application/json:
+          schema:
+            $ref: "../contract.yaml#/components/schemas/ErrorResponse"
+    "409":
+      description: Нарушено бизнес-ограничение договора.
+      content:
+        application/json:
+          schema:
+            $ref: "../contract.yaml#/components/schemas/ErrorResponse"

@@ -1,0 +1,33 @@
+post:
+  tags:
+    - Contracts
+  operationId: signContract
+  summary: Подписать договор
+  description: Переводит договор из статуса `draft` в статус `active`.
+  parameters:
+    - $ref: "../contract.yaml#/components/parameters/ContractId"
+  responses:
+    "200":
+      description: Договор подписан.
+      content:
+        application/json:
+          schema:
+            $ref: "../contract.yaml#/components/schemas/SignContractResponse"
+    "400":
+      description: Некорректный идентификатор договора.
+      content:
+        application/json:
+          schema:
+            $ref: "../contract.yaml#/components/schemas/ErrorResponse"
+    "404":
+      description: Договор не найден.
+      content:
+        application/json:
+          schema:
+            $ref: "../contract.yaml#/components/schemas/ErrorResponse"
+    "409":
+      description: Договор нельзя подписать в текущем состоянии.
+      content:
+        application/json:
+          schema:
+            $ref: "../contract.yaml#/components/schemas/ErrorResponse"

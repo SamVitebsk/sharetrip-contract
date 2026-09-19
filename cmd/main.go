@@ -19,6 +19,7 @@ func main() {
 		Path:     "docs",
 		Title:    "ShareTrip Contract Service API documentation",
 	}))
+	app.Static("/api/paths", "./api/paths")
 
 	contractapi.RegisterRoutes(app)
 

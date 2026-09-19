@@ -1,0 +1,33 @@
+post:
+  tags:
+    - Contracts
+  operationId: suspendContract
+  summary: Приостановить договор
+  description: Переводит активный договор в статус `suspended`.
+  parameters:
+    - $ref: "../contract.yaml#/components/parameters/ContractId"
+  responses:
+    "200":
+      description: Договор приостановлен.
+      content:
+        application/json:
+          schema:
+            $ref: "../contract.yaml#/components/schemas/Contract"
+    "404":
+      description: Договор не найден.
+      content:
+        application/json:
+          schema:
+            $ref: "../contract.yaml#/components/schemas/ErrorResponse"
+    "409":
+      description: Договор нельзя приостановить в текущем состоянии.
+      content:
+        application/json:
+          schema:
+            $ref: "../contract.yaml#/components/schemas/ErrorResponse"
+    "501":
+      description: Операция пока не реализована.
+      content:
+        application/json:
+          schema:
+            $ref: "../contract.yaml#/components/schemas/ErrorResponse"

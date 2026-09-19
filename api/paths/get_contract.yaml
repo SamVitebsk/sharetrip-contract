@@ -1,0 +1,27 @@
+get:
+  tags:
+    - Contracts
+  operationId: getContract
+  summary: Получить договор по идентификатору
+  description: Возвращает договор с его статусом, сроком действия и услугами.
+  parameters:
+    - $ref: "../contract.yaml#/components/parameters/ContractId"
+  responses:
+    "200":
+      description: Договор найден.
+      content:
+        application/json:
+          schema:
+            $ref: "../contract.yaml#/components/schemas/Contract"
+    "404":
+      description: Договор не найден.
+      content:
+        application/json:
+          schema:
+            $ref: "../contract.yaml#/components/schemas/ErrorResponse"
+    "501":
+      description: Операция пока не реализована.
+      content:
+        application/json:
+          schema:
+            $ref: "../contract.yaml#/components/schemas/ErrorResponse"

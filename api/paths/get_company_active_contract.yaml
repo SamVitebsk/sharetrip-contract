@@ -1,0 +1,27 @@
+get:
+  tags:
+    - Contracts
+  operationId: getCompanyActiveContract
+  summary: Получить активный договор компании
+  description: Возвращает активный договор компании, если он существует.
+  parameters:
+    - $ref: "../contract.yaml#/components/parameters/CompanyId"
+  responses:
+    "200":
+      description: Активный договор найден.
+      content:
+        application/json:
+          schema:
+            $ref: "../contract.yaml#/components/schemas/Contract"
+    "404":
+      description: Активный договор компании не найден.
+      content:
+        application/json:
+          schema:
+            $ref: "../contract.yaml#/components/schemas/ErrorResponse"
+    "501":
+      description: Операция пока не реализована.
+      content:
+        application/json:
+          schema:
+            $ref: "../contract.yaml#/components/schemas/ErrorResponse"
