@@ -5,7 +5,7 @@ CREATE TYPE contract_status AS ENUM ('draft', 'active', 'suspended', 'terminated
 
 CREATE TABLE contracts (
     id uuid PRIMARY KEY,
-    company_id uuid NOT NULL,
+    client_id uuid NOT NULL,
     status contract_status NOT NULL,
     valid_from timestamptz NOT NULL,
     valid_until timestamptz,
@@ -14,8 +14,8 @@ CREATE TABLE contracts (
     CONSTRAINT contracts_valid_period_check CHECK (valid_until IS NULL OR valid_until > valid_from)
 );
 
-CREATE UNIQUE INDEX uidx_contracts_one_active_per_company
-    ON contracts (company_id)
+CREATE UNIQUE INDEX uidx_contracts_one_active_per_client
+    ON contracts (client_id)
     WHERE status = 'active'::contract_status;
 
 
@@ -38,7 +38,7 @@ CREATE TABLE contract_services (
 
 DROP TABLE IF EXISTS contract_services;
 DROP TYPE IF EXISTS contract_service_code;
-DROP INDEX IF EXISTS uidx_contracts_one_active_per_company;
+DROP INDEX IF EXISTS uidx_contracts_one_active_per_client;
 DROP TABLE IF EXISTS contracts;
 DROP TYPE IF EXISTS contract_status;
 

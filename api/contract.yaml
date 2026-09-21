@@ -2,21 +2,21 @@ openapi: 3.0.3
 info:
   title: ShareTrip Contract Service API
   version: 0.1.0
-  description: API сервиса договорных условий и проверки доступности услуг для компаний.
+  description: API сервиса договорных условий и проверки доступности услуг для клиентов.
 servers:
   - url: /
     description: Service base URL
 security: []
 tags:
   - name: Contracts
-    description: Договоры компаний и проверка доступности услуг.
+    description: Договоры клиентов и проверка доступности услуг.
 paths:
   /contracts:
     $ref: "./paths/create_contract.yaml"
   /contracts/{contractId}:
     $ref: "./paths/get_contract.yaml"
-  /companies/{companyId}/active-contract:
-    $ref: "./paths/get_company_active_contract.yaml"
+  /clients/{clientId}/active-contract:
+    $ref: "./paths/get_client_active_contract.yaml"
   /contracts/{contractId}/sign:
     $ref: "./paths/sign_contract.yaml"
   /contracts/{contractId}/suspend:
@@ -25,7 +25,7 @@ paths:
     $ref: "./paths/resume_contract.yaml"
   /contracts/{contractId}/terminate:
     $ref: "./paths/terminate_contract.yaml"
-  /companies/{companyId}/services/{serviceCode}/availability-check:
+  /clients/{clientId}/services/{serviceCode}/availability-check:
     $ref: "./paths/check_service_availability.yaml"
 components:
   parameters:
@@ -37,11 +37,11 @@ components:
       schema:
         type: string
         format: uuid
-    CompanyId:
-      name: companyId
+    ClientId:
+      name: clientId
       in: path
       required: true
-      description: Идентификатор компании.
+      description: Идентификатор клиента.
       schema:
         type: string
         format: uuid
@@ -57,7 +57,7 @@ components:
       type: object
       required:
         - id
-        - companyId
+        - clientId
         - status
         - validFrom
         - services
@@ -68,10 +68,10 @@ components:
           type: string
           format: uuid
           description: Идентификатор договора.
-        companyId:
+        clientId:
           type: string
           format: uuid
-          description: Идентификатор компании.
+          description: Идентификатор клиента.
         status:
           $ref: "#/components/schemas/ContractStatus"
         validFrom:
@@ -127,14 +127,14 @@ components:
     CreateContractRequest:
       type: object
       required:
-        - companyId
+        - clientId
         - validFrom
         - services
       properties:
-        companyId:
+        clientId:
           type: string
           format: uuid
-          description: Компания, для которой создаётся договор.
+          description: Клиент, для которого создаётся договор.
         validFrom:
           type: string
           format: date-time
@@ -174,7 +174,7 @@ components:
       properties:
         allowed:
           type: boolean
-          description: Доступна ли услуга компании.
+          description: Доступна ли услуга клиенту.
         reason:
           type: string
           nullable: true

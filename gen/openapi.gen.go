@@ -92,7 +92,7 @@ func (e ServiceCode) Valid() bool {
 
 // CheckServiceAvailabilityResponse defines model for CheckServiceAvailabilityResponse.
 type CheckServiceAvailabilityResponse struct {
-	// Allowed Доступна ли услуга компании.
+	// Allowed Доступна ли услуга клиенту.
 	Allowed bool `json:"allowed"`
 
 	// ContractId Договор, на основании которого принято решение.
@@ -107,8 +107,8 @@ type CheckServiceAvailabilityResponseReason string
 
 // Contract defines model for Contract.
 type Contract struct {
-	// CompanyId Идентификатор компании.
-	CompanyId openapi_types.UUID `json:"companyId"`
+	// ClientId Идентификатор клиента.
+	ClientId openapi_types.UUID `json:"clientId"`
 
 	// CreatedAt Дата создания договора.
 	CreatedAt time.Time `json:"createdAt"`
@@ -146,8 +146,8 @@ type ContractStatus string
 
 // CreateContractRequest defines model for CreateContractRequest.
 type CreateContractRequest struct {
-	// CompanyId Компания, для которой создаётся договор.
-	CompanyId openapi_types.UUID `json:"companyId"`
+	// ClientId Клиент, для которого создаётся договор.
+	ClientId openapi_types.UUID `json:"clientId"`
 
 	// Services Услуги, включённые в договор.
 	Services []ContractService `json:"services"`
@@ -181,8 +181,8 @@ type SignContractResponse struct {
 	Contract Contract `json:"contract"`
 }
 
-// CompanyId defines model for CompanyId.
-type CompanyId = openapi_types.UUID
+// ClientId defines model for ClientId.
+type ClientId = openapi_types.UUID
 
 // ContractId defines model for ContractId.
 type ContractId = openapi_types.UUID
@@ -192,13 +192,13 @@ type CreateContractJSONRequestBody = CreateContractRequest
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
-	// GetCompanyActiveContract Получить активный договор компании
-	// (GET /companies/{companyId}/active-contract)
-	GetCompanyActiveContract(c *fiber.Ctx, companyId CompanyId) error
-	// CheckServiceAvailability Проверить доступность услуги для компании
-	// (POST /companies/{companyId}/services/{serviceCode}/availability-check)
-	CheckServiceAvailability(c *fiber.Ctx, companyId CompanyId, serviceCode ServiceCode) error
-	// CreateContract Создать договор для компании
+	// GetClientActiveContract Получить активный договор клиента
+	// (GET /clients/{clientId}/active-contract)
+	GetClientActiveContract(c *fiber.Ctx, clientId ClientId) error
+	// CheckServiceAvailability Проверить доступность услуги для клиента
+	// (POST /clients/{clientId}/services/{serviceCode}/availability-check)
+	CheckServiceAvailability(c *fiber.Ctx, clientId ClientId, serviceCode ServiceCode) error
+	// CreateContract Создать договор для клиента
 	// (POST /contracts)
 	CreateContract(c *fiber.Ctx) error
 	// GetContract Получить договор по идентификатору
@@ -227,22 +227,22 @@ type ServerInterfaceWrapper struct {
 type MiddlewareFunc fiber.Handler
 type HandlerMiddlewareFunc func(c *fiber.Ctx, next fiber.Handler) error
 
-// GetCompanyActiveContract operation middleware
-func (siw *ServerInterfaceWrapper) GetCompanyActiveContract(c *fiber.Ctx) error {
+// GetClientActiveContract operation middleware
+func (siw *ServerInterfaceWrapper) GetClientActiveContract(c *fiber.Ctx) error {
 
 	var err error
 	_ = err
 
-	// ------------- Path parameter "companyId" -------------
-	var companyId CompanyId
+	// ------------- Path parameter "clientId" -------------
+	var clientId ClientId
 
-	err = runtime.BindStyledParameterWithOptions("simple", "companyId", c.Params("companyId"), &companyId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid"})
+	err = runtime.BindStyledParameterWithOptions("simple", "clientId", c.Params("clientId"), &clientId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid"})
 	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter companyId: %w", err).Error())
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter clientId: %w", err).Error())
 	}
 
 	handler := func(c *fiber.Ctx) error {
-		return siw.Handler.GetCompanyActiveContract(c, companyId)
+		return siw.Handler.GetClientActiveContract(c, clientId)
 	}
 
 	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
@@ -262,12 +262,12 @@ func (siw *ServerInterfaceWrapper) CheckServiceAvailability(c *fiber.Ctx) error 
 	var err error
 	_ = err
 
-	// ------------- Path parameter "companyId" -------------
-	var companyId CompanyId
+	// ------------- Path parameter "clientId" -------------
+	var clientId ClientId
 
-	err = runtime.BindStyledParameterWithOptions("simple", "companyId", c.Params("companyId"), &companyId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid"})
+	err = runtime.BindStyledParameterWithOptions("simple", "clientId", c.Params("clientId"), &clientId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid"})
 	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter companyId: %w", err).Error())
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter clientId: %w", err).Error())
 	}
 
 	// ------------- Path parameter "serviceCode" -------------
@@ -279,7 +279,7 @@ func (siw *ServerInterfaceWrapper) CheckServiceAvailability(c *fiber.Ctx) error 
 	}
 
 	handler := func(c *fiber.Ctx) error {
-		return siw.Handler.CheckServiceAvailability(c, companyId, serviceCode)
+		return siw.Handler.CheckServiceAvailability(c, clientId, serviceCode)
 	}
 
 	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
@@ -479,9 +479,9 @@ func RegisterHandlersWithOptions(router fiber.Router, si ServerInterface, option
 		router.Use(fiber.Handler(m))
 	}
 
-	router.Get(options.BaseURL+"/companies/:companyId/active-contract", wrapper.GetCompanyActiveContract)
+	router.Get(options.BaseURL+"/clients/:clientId/active-contract", wrapper.GetClientActiveContract)
 
-	router.Post(options.BaseURL+"/companies/:companyId/services/:serviceCode/availability-check", wrapper.CheckServiceAvailability)
+	router.Post(options.BaseURL+"/clients/:clientId/services/:serviceCode/availability-check", wrapper.CheckServiceAvailability)
 
 	router.Post(options.BaseURL+"/contracts", wrapper.CreateContract)
 

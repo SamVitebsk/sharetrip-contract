@@ -1,10 +1,13 @@
 OAPI_CODEGEN_VERSION := v2.8.0
 OAPI_CODEGEN_BIN := bin/oapi-codegen
 OAPI_CODEGEN := ./$(OAPI_CODEGEN_BIN)
+GOOSE_VERSION := v3.26.0
+GOOSE_BIN := bin/goose
+COMPOSE := docker compose --env-file .env -f deploy/docker-compose.yml
 
 export GOBIN := $(CURDIR)/bin
 
-.PHONY: tools generate generate-api run
+.PHONY: tools generate generate-api run up migrate-up migrate-status
 
 tools: $(OAPI_CODEGEN_BIN)
 
@@ -25,4 +28,17 @@ generate-api: $(OAPI_CODEGEN_BIN)
 
 run: generate
 	@echo "START: running Contract Service"
-	@trap 'status=$$?; trap - EXIT INT TERM; echo "DONE: Contract Service stopped (exit code $$status)"; exit $$status' EXIT INT TERM; go run ./cmd
+	@set -a; if [ -f .env ]; then . ./.env || exit $$?; fi; set +a; \
+	trap 'status=$$?; trap - EXIT INT TERM; echo "DONE: Contract Service stopped (exit code $$status)"; exit $$status' EXIT INT TERM; go run ./cmd
+
+$(GOOSE_BIN):
+	@go install github.com/pressly/goose/v3/cmd/goose@$(GOOSE_VERSION)
+
+up:
+	@$(COMPOSE) up -d --wait --wait-timeout 60 postgres
+
+migrate-up: $(GOOSE_BIN)
+	@GOOSE_DRIVER=postgres GOOSE_DBSTRING='connect_timeout=5' ./$(GOOSE_BIN) -env .env -dir migrations up
+
+migrate-status: $(GOOSE_BIN)
+	@GOOSE_DRIVER=postgres GOOSE_DBSTRING='connect_timeout=5' ./$(GOOSE_BIN) -env .env -dir migrations status

@@ -26,7 +26,13 @@ post:
           schema:
             $ref: "../contract.yaml#/components/schemas/ErrorResponse"
     "409":
-      description: Договор нельзя подписать в текущем состоянии.
+      description: Недопустимый статус, истечение срока или конфликт уникальности при подписании (в том числе другой active у клиента). Код ошибки conflict.
+      content:
+        application/json:
+          schema:
+            $ref: "../contract.yaml#/components/schemas/ErrorResponse"
+    "500":
+      description: Внутренняя ошибка, включая сбой хранения. Код ошибки internalError; технические детали не раскрываются.
       content:
         application/json:
           schema:

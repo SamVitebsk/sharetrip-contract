@@ -2,7 +2,7 @@ post:
   tags:
     - Contracts
   operationId: createContract
-  summary: Создать договор для компании
+  summary: Создать договор для клиента
   description: Создаёт договор компании со сроком действия и списком услуг.
   requestBody:
     required: true
@@ -18,13 +18,19 @@ post:
           schema:
             $ref: "../contract.yaml#/components/schemas/CreateContractResponse"
     "400":
-      description: Некорректный запрос.
+      description: Некорректный Content-Type, JSON, тип или формат поля, пустое обязательное значение либо неизвестный код услуги. Код ошибки invalidRequest.
       content:
         application/json:
           schema:
             $ref: "../contract.yaml#/components/schemas/ErrorResponse"
     "409":
-      description: Нарушено бизнес-ограничение договора.
+      description: Недопустимый период действия или повтор кода услуги. Код ошибки conflict.
+      content:
+        application/json:
+          schema:
+            $ref: "../contract.yaml#/components/schemas/ErrorResponse"
+    "500":
+      description: Внутренняя ошибка, включая сбой хранения. Код ошибки internalError; технические детали не раскрываются.
       content:
         application/json:
           schema:

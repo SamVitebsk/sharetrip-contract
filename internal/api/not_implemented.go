@@ -7,32 +7,29 @@ import (
 )
 
 func (s *Server) GetContract(ctx *fiber.Ctx, contractId gen.ContractId) error {
-	return notImplemented(ctx)
+	return notImplemented()
 }
 
-func (s *Server) GetCompanyActiveContract(ctx *fiber.Ctx, companyId gen.CompanyId) error {
-	return notImplemented(ctx)
+func (s *Server) GetClientActiveContract(ctx *fiber.Ctx, clientId gen.ClientId) error {
+	return notImplemented()
 }
 
 func (s *Server) SuspendContract(ctx *fiber.Ctx, contractId gen.ContractId) error {
-	return notImplemented(ctx)
+	return notImplemented()
 }
 
 func (s *Server) ResumeContract(ctx *fiber.Ctx, contractId gen.ContractId) error {
-	return notImplemented(ctx)
+	return notImplemented()
 }
 
 func (s *Server) TerminateContract(ctx *fiber.Ctx, contractId gen.ContractId) error {
-	return notImplemented(ctx)
+	return notImplemented()
 }
 
-func (s *Server) CheckServiceAvailability(ctx *fiber.Ctx, companyId gen.CompanyId, serviceCode gen.ServiceCode) error {
-	return notImplemented(ctx)
+func (s *Server) CheckServiceAvailability(ctx *fiber.Ctx, clientId gen.ClientId, serviceCode gen.ServiceCode) error {
+	return notImplemented()
 }
 
-func notImplemented(ctx *fiber.Ctx) error {
-	return ctx.Status(fiber.StatusNotImplemented).JSON(gen.ErrorResponse{
-		Code:    errorCodeNotImplemented,
-		Message: "операция пока не реализована",
-	})
+func notImplemented() error {
+	return fiber.NewError(fiber.StatusNotImplemented, "операция пока не реализована")
 }
