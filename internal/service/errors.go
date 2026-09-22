@@ -37,3 +37,13 @@ func mapSignContractError(err error) error {
 		return err
 	}
 }
+
+func mapCheckServiceAvailabilityError(err error) error {
+	switch {
+	case errors.Is(err, domain.ErrInvalidClientID),
+		errors.Is(err, domain.ErrInvalidContractServiceCode):
+		return errors.Join(ErrInvalidInput, err)
+	default:
+		return err
+	}
+}

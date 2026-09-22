@@ -26,10 +26,6 @@ func (s *Server) TerminateContract(ctx *fiber.Ctx, contractId gen.ContractId) er
 	return notImplemented()
 }
 
-func (s *Server) CheckServiceAvailability(ctx *fiber.Ctx, clientId gen.ClientId, serviceCode gen.ServiceCode) error {
-	return notImplemented()
-}
-
 func notImplemented() error {
 	return fiber.NewError(fiber.StatusNotImplemented, "операция пока не реализована")
 }

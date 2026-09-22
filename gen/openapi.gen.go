@@ -14,31 +14,25 @@ import (
 
 // Defines values for CheckServiceAvailabilityResponseReason.
 const (
-	ActiveContractNotFound CheckServiceAvailabilityResponseReason = "activeContractNotFound"
-	ContractExpired        CheckServiceAvailabilityResponseReason = "contractExpired"
-	ContractNotStarted     CheckServiceAvailabilityResponseReason = "contractNotStarted"
-	ContractSuspended      CheckServiceAvailabilityResponseReason = "contractSuspended"
-	ContractTerminated     CheckServiceAvailabilityResponseReason = "contractTerminated"
-	ServiceDisabled        CheckServiceAvailabilityResponseReason = "serviceDisabled"
-	ServiceNotInContract   CheckServiceAvailabilityResponseReason = "serviceNotInContract"
+	ContractExpired    CheckServiceAvailabilityResponseReason = "contractExpired"
+	ContractNotActive  CheckServiceAvailabilityResponseReason = "contractNotActive"
+	ContractNotFound   CheckServiceAvailabilityResponseReason = "contractNotFound"
+	ContractNotStarted CheckServiceAvailabilityResponseReason = "contractNotStarted"
+	ServiceNotAllowed  CheckServiceAvailabilityResponseReason = "serviceNotAllowed"
 )
 
 // Valid indicates whether the value is a known member of the CheckServiceAvailabilityResponseReason enum.
 func (e CheckServiceAvailabilityResponseReason) Valid() bool {
 	switch e {
-	case ActiveContractNotFound:
-		return true
 	case ContractExpired:
+		return true
+	case ContractNotActive:
+		return true
+	case ContractNotFound:
 		return true
 	case ContractNotStarted:
 		return true
-	case ContractSuspended:
-		return true
-	case ContractTerminated:
-		return true
-	case ServiceDisabled:
-		return true
-	case ServiceNotInContract:
+	case ServiceNotAllowed:
 		return true
 	default:
 		return false
@@ -90,6 +84,15 @@ func (e ServiceCode) Valid() bool {
 	}
 }
 
+// CheckServiceAvailabilityRequest defines model for CheckServiceAvailabilityRequest.
+type CheckServiceAvailabilityRequest struct {
+	// ClientId Идентификатор клиента.
+	ClientId openapi_types.UUID `json:"client_id"`
+
+	// ServiceCode Код услуги, доступность которой регулируется договором.
+	ServiceCode ServiceCode `json:"service_code"`
+}
+
 // CheckServiceAvailabilityResponse defines model for CheckServiceAvailabilityResponse.
 type CheckServiceAvailabilityResponse struct {
 	// Allowed Доступна ли услуга клиенту.
@@ -99,7 +102,7 @@ type CheckServiceAvailabilityResponse struct {
 	ContractId *openapi_types.UUID `json:"contractId,omitempty"`
 
 	// Reason Причина отказа, если услуга недоступна.
-	Reason *CheckServiceAvailabilityResponseReason `json:"reason,omitempty"`
+	Reason *CheckServiceAvailabilityResponseReason `json:"reason"`
 }
 
 // CheckServiceAvailabilityResponseReason Причина отказа, если услуга недоступна.
@@ -190,17 +193,20 @@ type ContractId = openapi_types.UUID
 // CreateContractJSONRequestBody defines body for CreateContract for application/json ContentType.
 type CreateContractJSONRequestBody = CreateContractRequest
 
+// CheckServiceAvailabilityJSONRequestBody defines body for CheckServiceAvailability for application/json ContentType.
+type CheckServiceAvailabilityJSONRequestBody = CheckServiceAvailabilityRequest
+
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 	// GetClientActiveContract Получить активный договор клиента
 	// (GET /clients/{clientId}/active-contract)
 	GetClientActiveContract(c *fiber.Ctx, clientId ClientId) error
-	// CheckServiceAvailability Проверить доступность услуги для клиента
-	// (POST /clients/{clientId}/services/{serviceCode}/availability-check)
-	CheckServiceAvailability(c *fiber.Ctx, clientId ClientId, serviceCode ServiceCode) error
 	// CreateContract Создать договор для клиента
 	// (POST /contracts)
 	CreateContract(c *fiber.Ctx) error
+	// CheckServiceAvailability Проверить доступность услуги для клиента
+	// (POST /contracts/check-service)
+	CheckServiceAvailability(c *fiber.Ctx) error
 	// GetContract Получить договор по идентификатору
 	// (GET /contracts/{contractId})
 	GetContract(c *fiber.Ctx, contractId ContractId) error
@@ -256,30 +262,11 @@ func (siw *ServerInterfaceWrapper) GetClientActiveContract(c *fiber.Ctx) error {
 	return handler(c)
 }
 
-// CheckServiceAvailability operation middleware
-func (siw *ServerInterfaceWrapper) CheckServiceAvailability(c *fiber.Ctx) error {
-
-	var err error
-	_ = err
-
-	// ------------- Path parameter "clientId" -------------
-	var clientId ClientId
-
-	err = runtime.BindStyledParameterWithOptions("simple", "clientId", c.Params("clientId"), &clientId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid"})
-	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter clientId: %w", err).Error())
-	}
-
-	// ------------- Path parameter "serviceCode" -------------
-	var serviceCode ServiceCode
-
-	err = runtime.BindStyledParameterWithOptions("simple", "serviceCode", c.Params("serviceCode"), &serviceCode, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: ""})
-	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter serviceCode: %w", err).Error())
-	}
+// CreateContract operation middleware
+func (siw *ServerInterfaceWrapper) CreateContract(c *fiber.Ctx) error {
 
 	handler := func(c *fiber.Ctx) error {
-		return siw.Handler.CheckServiceAvailability(c, clientId, serviceCode)
+		return siw.Handler.CreateContract(c)
 	}
 
 	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
@@ -293,11 +280,11 @@ func (siw *ServerInterfaceWrapper) CheckServiceAvailability(c *fiber.Ctx) error 
 	return handler(c)
 }
 
-// CreateContract operation middleware
-func (siw *ServerInterfaceWrapper) CreateContract(c *fiber.Ctx) error {
+// CheckServiceAvailability operation middleware
+func (siw *ServerInterfaceWrapper) CheckServiceAvailability(c *fiber.Ctx) error {
 
 	handler := func(c *fiber.Ctx) error {
-		return siw.Handler.CreateContract(c)
+		return siw.Handler.CheckServiceAvailability(c)
 	}
 
 	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
@@ -481,9 +468,9 @@ func RegisterHandlersWithOptions(router fiber.Router, si ServerInterface, option
 
 	router.Get(options.BaseURL+"/clients/:clientId/active-contract", wrapper.GetClientActiveContract)
 
-	router.Post(options.BaseURL+"/clients/:clientId/services/:serviceCode/availability-check", wrapper.CheckServiceAvailability)
-
 	router.Post(options.BaseURL+"/contracts", wrapper.CreateContract)
+
+	router.Post(options.BaseURL+"/contracts/check-service", wrapper.CheckServiceAvailability)
 
 	router.Get(options.BaseURL+"/contracts/:contractId", wrapper.GetContract)
 

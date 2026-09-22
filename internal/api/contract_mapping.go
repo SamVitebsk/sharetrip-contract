@@ -71,3 +71,22 @@ func copyContractEndTime(validUntil *time.Time) *time.Time {
 	validUntilCopy := *validUntil
 	return &validUntilCopy
 }
+
+func toCheckServiceAvailabilityCommand(request gen.CheckServiceAvailabilityRequest) service.CheckServiceAvailabilityCommand {
+	return service.CheckServiceAvailabilityCommand{
+		ClientID:    request.ClientId,
+		ServiceCode: string(request.ServiceCode),
+	}
+}
+
+func toCheckServiceAvailabilityResponse(result service.CheckServiceAvailabilityResult) gen.CheckServiceAvailabilityResponse {
+	response := gen.CheckServiceAvailabilityResponse{
+		Allowed:    result.Allowed,
+		ContractId: result.ContractID,
+	}
+	if !result.Allowed && result.Reason != "" {
+		reason := gen.CheckServiceAvailabilityResponseReason(result.Reason)
+		response.Reason = &reason
+	}
+	return response
+}
