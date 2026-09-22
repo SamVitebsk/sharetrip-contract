@@ -7,7 +7,7 @@ COMPOSE := docker compose --env-file .env -f deploy/docker-compose.yml
 
 export GOBIN := $(CURDIR)/bin
 
-.PHONY: tools generate generate-api run up migrate-up migrate-status
+.PHONY: tools generate generate-api run up migrate-up migrate-status test build fmt check
 
 tools: $(OAPI_CODEGEN_BIN)
 
@@ -42,3 +42,18 @@ migrate-up: $(GOOSE_BIN)
 
 migrate-status: $(GOOSE_BIN)
 	@GOOSE_DRIVER=postgres GOOSE_DBSTRING='connect_timeout=5' ./$(GOOSE_BIN) -env .env -dir migrations status
+
+test:
+	go test -v ./...
+	@echo "OK: tests passed"
+
+build: generate
+	go build -o bin/server ./cmd
+	@echo "OK: build completed"
+
+fmt:
+	go fmt ./...
+	@echo "OK: formatting completed"
+
+check: fmt test build
+	@echo "OK: all checks passed"
