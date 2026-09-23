@@ -9,11 +9,11 @@ import (
 	"github.com/google/uuid"
 )
 
-type SignContractCommand struct {
+type SignContractRequest struct {
 	ContractID uuid.UUID
 }
 
-type SignContractResult struct {
+type SignContractResponse struct {
 	ID         uuid.UUID
 	ClientID   uuid.UUID
 	Status     string
@@ -24,10 +24,10 @@ type SignContractResult struct {
 	UpdatedAt  time.Time
 }
 
-func (s *Service) SignContract(ctx context.Context, command SignContractCommand) (SignContractResult, error) {
-	contractID, err := domain.NewContractID(command.ContractID)
+func (s *Service) SignContract(ctx context.Context, request SignContractRequest) (SignContractResponse, error) {
+	contractID, err := domain.NewContractID(request.ContractID)
 	if err != nil {
-		return SignContractResult{}, mapSignContractError(err)
+		return SignContractResponse{}, mapSignContractError(err)
 	}
 
 	var signedContract domain.Contract
@@ -51,8 +51,8 @@ func (s *Service) SignContract(ctx context.Context, command SignContractCommand)
 		return nil
 	})
 	if err != nil {
-		return SignContractResult{}, fmt.Errorf("sign contract: %w", err)
+		return SignContractResponse{}, fmt.Errorf("sign contract: %w", err)
 	}
 
-	return toSignContractResult(signedContract), nil
+	return toSignContractResponse(signedContract), nil
 }

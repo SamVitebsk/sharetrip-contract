@@ -12,10 +12,10 @@ func (s *Server) CreateContract(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	result, err := s.service.CreateContract(ctx.UserContext(), toCreateContractCommand(request))
+	response, err := s.service.CreateContract(ctx.UserContext(), toCreateContractRequest(request))
 	if err != nil {
 		return err
 	}
 
-	return ctx.Status(fiber.StatusCreated).JSON(toCreateContractResponse(result))
+	return ctx.Status(fiber.StatusCreated).JSON(toCreateContractResponse(response))
 }

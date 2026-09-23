@@ -12,14 +12,14 @@ type ContractService struct {
 }
 
 func toContractServices(services []domain.ContractService) []ContractService {
-	result := make([]ContractService, len(services))
+	responses := make([]ContractService, len(services))
 	for index, contractService := range services {
-		result[index] = ContractService{
+		responses[index] = ContractService{
 			ServiceCode: string(contractService.ServiceCode),
 			Allowed:     contractService.Allowed,
 		}
 	}
-	return result
+	return responses
 }
 
 func copyContractEndTime(validUntil *time.Time) *time.Time {
@@ -30,8 +30,8 @@ func copyContractEndTime(validUntil *time.Time) *time.Time {
 	return &validUntilCopy
 }
 
-func toCreateContractResult(contract domain.Contract) CreateContractResult {
-	return CreateContractResult{
+func toCreateContractResponse(contract domain.Contract) CreateContractResponse {
+	return CreateContractResponse{
 		ID:         contract.ID.Value(),
 		ClientID:   contract.ClientID.Value(),
 		Status:     string(contract.Status),
@@ -43,8 +43,8 @@ func toCreateContractResult(contract domain.Contract) CreateContractResult {
 	}
 }
 
-func toSignContractResult(contract domain.Contract) SignContractResult {
-	return SignContractResult{
+func toSignContractResponse(contract domain.Contract) SignContractResponse {
+	return SignContractResponse{
 		ID:         contract.ID.Value(),
 		ClientID:   contract.ClientID.Value(),
 		Status:     string(contract.Status),

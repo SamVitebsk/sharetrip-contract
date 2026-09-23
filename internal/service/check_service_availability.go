@@ -9,34 +9,34 @@ import (
 	"github.com/google/uuid"
 )
 
-type CheckServiceAvailabilityCommand struct {
+type CheckServiceAvailabilityRequest struct {
 	ClientID    uuid.UUID
 	ServiceCode string
 }
 
-type CheckServiceAvailabilityResult struct {
+type CheckServiceAvailabilityResponse struct {
 	Allowed    bool
 	Reason     string
 	ContractID *uuid.UUID
 }
 
-func (s *Service) CheckServiceAvailability(ctx context.Context, cmd CheckServiceAvailabilityCommand) (CheckServiceAvailabilityResult, error) {
-	clientID, err := domain.NewClientID(cmd.ClientID)
+func (s *Service) CheckServiceAvailability(ctx context.Context, req CheckServiceAvailabilityRequest) (CheckServiceAvailabilityResponse, error) {
+	clientID, err := domain.NewClientID(req.ClientID)
 	if err != nil {
-		return CheckServiceAvailabilityResult{}, mapCheckServiceAvailabilityError(err)
+		return CheckServiceAvailabilityResponse{}, mapCheckServiceAvailabilityError(err)
 	}
 
-	serviceCode := domain.ContractServiceCode(cmd.ServiceCode)
+	serviceCode := domain.ContractServiceCode(req.ServiceCode)
 	if err := serviceCode.Validate(); err != nil {
-		return CheckServiceAvailabilityResult{}, mapCheckServiceAvailabilityError(err)
+		return CheckServiceAvailabilityResponse{}, mapCheckServiceAvailabilityError(err)
 	}
 
-	var result CheckServiceAvailabilityResult
+	var response CheckServiceAvailabilityResponse
 	err = s.txRunner(ctx, func(txCtx context.Context, repo RepositoryTx) error {
 		contract, repoErr := repo.GetClientActiveContract(txCtx, clientID)
 		if repoErr != nil {
 			if errors.Is(repoErr, ErrNotFound) {
-				result = CheckServiceAvailabilityResult{
+				response = CheckServiceAvailabilityResponse{
 					Allowed: false,
 					Reason:  string(domain.ReasonContractNotFound),
 				}
@@ -48,7 +48,7 @@ func (s *Service) CheckServiceAvailability(ctx context.Context, cmd CheckService
 		allowed, reason := contract.CheckService(serviceCode, time.Now())
 
 		contractID := contract.ID.Value()
-		result = CheckServiceAvailabilityResult{
+		response = CheckServiceAvailabilityResponse{
 			Allowed:    allowed,
 			Reason:     string(reason),
 			ContractID: &contractID,
@@ -58,8 +58,8 @@ func (s *Service) CheckServiceAvailability(ctx context.Context, cmd CheckService
 	})
 
 	if err != nil {
-		return CheckServiceAvailabilityResult{}, err
+		return CheckServiceAvailabilityResponse{}, err
 	}
 
-	return result, nil
+	return response, nil
 }

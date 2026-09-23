@@ -7,7 +7,7 @@ import (
 	"github.com/SamVitebsk/sharetrip-contract/internal/service"
 )
 
-func toCreateContractCommand(request gen.CreateContractRequest) service.CreateContractCommand {
+func toCreateContractRequest(request gen.CreateContractRequest) service.CreateContractRequest {
 	services := make([]service.ContractService, len(request.Services))
 	for i, contractService := range request.Services {
 		services[i] = service.ContractService{
@@ -15,7 +15,7 @@ func toCreateContractCommand(request gen.CreateContractRequest) service.CreateCo
 			Allowed:     contractService.Allowed,
 		}
 	}
-	return service.CreateContractCommand{
+	return service.CreateContractRequest{
 		ClientID:   request.ClientId,
 		ValidFrom:  request.ValidFrom,
 		ValidUntil: copyContractEndTime(request.ValidUntil),
@@ -23,45 +23,45 @@ func toCreateContractCommand(request gen.CreateContractRequest) service.CreateCo
 	}
 }
 
-func toSignContractCommand(contractID gen.ContractId) service.SignContractCommand {
-	return service.SignContractCommand{ContractID: contractID}
+func toSignContractRequest(contractID gen.ContractId) service.SignContractRequest {
+	return service.SignContractRequest{ContractID: contractID}
 }
 
-func toCreateContractResponse(result service.CreateContractResult) gen.CreateContractResponse {
+func toCreateContractResponse(response service.CreateContractResponse) gen.CreateContractResponse {
 	return gen.CreateContractResponse{Contract: gen.Contract{
-		Id:         result.ID,
-		ClientId:   result.ClientID,
-		Status:     gen.ContractStatus(result.Status),
-		ValidFrom:  result.ValidFrom,
-		ValidUntil: copyContractEndTime(result.ValidUntil),
-		Services:   toContractServiceResponses(result.Services),
-		CreatedAt:  result.CreatedAt,
-		UpdatedAt:  result.UpdatedAt,
+		Id:         response.ID,
+		ClientId:   response.ClientID,
+		Status:     gen.ContractStatus(response.Status),
+		ValidFrom:  response.ValidFrom,
+		ValidUntil: copyContractEndTime(response.ValidUntil),
+		Services:   toContractServiceResponses(response.Services),
+		CreatedAt:  response.CreatedAt,
+		UpdatedAt:  response.UpdatedAt,
 	}}
 }
 
-func toSignContractResponse(result service.SignContractResult) gen.SignContractResponse {
+func toSignContractResponse(response service.SignContractResponse) gen.SignContractResponse {
 	return gen.SignContractResponse{Contract: gen.Contract{
-		Id:         result.ID,
-		ClientId:   result.ClientID,
-		Status:     gen.ContractStatus(result.Status),
-		ValidFrom:  result.ValidFrom,
-		ValidUntil: copyContractEndTime(result.ValidUntil),
-		Services:   toContractServiceResponses(result.Services),
-		CreatedAt:  result.CreatedAt,
-		UpdatedAt:  result.UpdatedAt,
+		Id:         response.ID,
+		ClientId:   response.ClientID,
+		Status:     gen.ContractStatus(response.Status),
+		ValidFrom:  response.ValidFrom,
+		ValidUntil: copyContractEndTime(response.ValidUntil),
+		Services:   toContractServiceResponses(response.Services),
+		CreatedAt:  response.CreatedAt,
+		UpdatedAt:  response.UpdatedAt,
 	}}
 }
 
 func toContractServiceResponses(services []service.ContractService) []gen.ContractService {
-	result := make([]gen.ContractService, len(services))
+	responses := make([]gen.ContractService, len(services))
 	for index, contractService := range services {
-		result[index] = gen.ContractService{
+		responses[index] = gen.ContractService{
 			ServiceCode: gen.ServiceCode(contractService.ServiceCode),
 			Allowed:     contractService.Allowed,
 		}
 	}
-	return result
+	return responses
 }
 
 func copyContractEndTime(validUntil *time.Time) *time.Time {
@@ -72,20 +72,20 @@ func copyContractEndTime(validUntil *time.Time) *time.Time {
 	return &validUntilCopy
 }
 
-func toCheckServiceAvailabilityCommand(request gen.CheckServiceAvailabilityRequest) service.CheckServiceAvailabilityCommand {
-	return service.CheckServiceAvailabilityCommand{
+func toCheckServiceAvailabilityRequest(request gen.CheckServiceAvailabilityRequest) service.CheckServiceAvailabilityRequest {
+	return service.CheckServiceAvailabilityRequest{
 		ClientID:    request.ClientId,
 		ServiceCode: string(request.ServiceCode),
 	}
 }
 
-func toCheckServiceAvailabilityResponse(result service.CheckServiceAvailabilityResult) gen.CheckServiceAvailabilityResponse {
+func toCheckServiceAvailabilityResponse(res service.CheckServiceAvailabilityResponse) gen.CheckServiceAvailabilityResponse {
 	response := gen.CheckServiceAvailabilityResponse{
-		Allowed:    result.Allowed,
-		ContractId: result.ContractID,
+		Allowed:    res.Allowed,
+		ContractId: res.ContractID,
 	}
-	if !result.Allowed && result.Reason != "" {
-		reason := gen.CheckServiceAvailabilityResponseReason(result.Reason)
+	if !res.Allowed && res.Reason != "" {
+		reason := gen.CheckServiceAvailabilityResponseReason(res.Reason)
 		response.Reason = &reason
 	}
 	return response

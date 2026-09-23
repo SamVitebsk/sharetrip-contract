@@ -11,10 +11,10 @@ func (s *Server) CheckServiceAvailability(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	availabilityResult, err := s.service.CheckServiceAvailability(ctx.UserContext(), toCheckServiceAvailabilityCommand(request))
+	availabilityResponse, err := s.service.CheckServiceAvailability(ctx.UserContext(), toCheckServiceAvailabilityRequest(request))
 	if err != nil {
 		return err
 	}
 
-	return ctx.Status(fiber.StatusOK).JSON(toCheckServiceAvailabilityResponse(availabilityResult))
+	return ctx.Status(fiber.StatusOK).JSON(toCheckServiceAvailabilityResponse(availabilityResponse))
 }

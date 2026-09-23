@@ -7,10 +7,10 @@ import (
 )
 
 func (s *Server) SignContract(ctx *fiber.Ctx, contractId gen.ContractId) error {
-	result, err := s.service.SignContract(ctx.UserContext(), toSignContractCommand(contractId))
+	response, err := s.service.SignContract(ctx.UserContext(), toSignContractRequest(contractId))
 	if err != nil {
 		return err
 	}
 
-	return ctx.Status(fiber.StatusOK).JSON(toSignContractResponse(result))
+	return ctx.Status(fiber.StatusOK).JSON(toSignContractResponse(response))
 }

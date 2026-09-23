@@ -9,14 +9,14 @@ import (
 	"github.com/google/uuid"
 )
 
-type CreateContractCommand struct {
+type CreateContractRequest struct {
 	ClientID   uuid.UUID
 	ValidFrom  time.Time
 	ValidUntil *time.Time
 	Services   []ContractService
 }
 
-type CreateContractResult struct {
+type CreateContractResponse struct {
 	ID         uuid.UUID
 	ClientID   uuid.UUID
 	Status     string
@@ -27,23 +27,23 @@ type CreateContractResult struct {
 	UpdatedAt  time.Time
 }
 
-func (s *Service) CreateContract(ctx context.Context, command CreateContractCommand) (CreateContractResult, error) {
-	clientID, err := domain.NewClientID(command.ClientID)
+func (s *Service) CreateContract(ctx context.Context, request CreateContractRequest) (CreateContractResponse, error) {
+	clientID, err := domain.NewClientID(request.ClientID)
 	if err != nil {
-		return CreateContractResult{}, mapCreateContractError(err)
+		return CreateContractResponse{}, mapCreateContractError(err)
 	}
 	contractID, err := domain.NewContractID(uuid.New())
 	if err != nil {
-		return CreateContractResult{}, fmt.Errorf("generate contract ID: %w", err)
+		return CreateContractResponse{}, fmt.Errorf("generate contract ID: %w", err)
 	}
 
 	var validUntil *time.Time
-	if command.ValidUntil != nil {
-		validUntilCopy := command.ValidUntil.UTC().Truncate(time.Microsecond)
+	if request.ValidUntil != nil {
+		validUntilCopy := request.ValidUntil.UTC().Truncate(time.Microsecond)
 		validUntil = &validUntilCopy
 	}
-	services := make([]domain.ContractService, len(command.Services))
-	for index, contractService := range command.Services {
+	services := make([]domain.ContractService, len(request.Services))
+	for index, contractService := range request.Services {
 		services[index] = domain.ContractService{
 			ServiceCode: domain.ContractServiceCode(contractService.ServiceCode),
 			Allowed:     contractService.Allowed,
@@ -53,13 +53,13 @@ func (s *Service) CreateContract(ctx context.Context, command CreateContractComm
 	response, err := domain.CreateContract(domain.CreateContractRequest{
 		ID:         contractID,
 		ClientID:   clientID,
-		ValidFrom:  command.ValidFrom.UTC().Truncate(time.Microsecond),
+		ValidFrom:  request.ValidFrom.UTC().Truncate(time.Microsecond),
 		ValidUntil: validUntil,
 		Services:   services,
 		Now:        time.Now().UTC().Truncate(time.Microsecond),
 	})
 	if err != nil {
-		return CreateContractResult{}, mapCreateContractError(err)
+		return CreateContractResponse{}, mapCreateContractError(err)
 	}
 
 	err = s.txRunner(ctx, func(transactionCtx context.Context, repoTx RepositoryTx) error {
@@ -69,8 +69,8 @@ func (s *Service) CreateContract(ctx context.Context, command CreateContractComm
 		return nil
 	})
 	if err != nil {
-		return CreateContractResult{}, fmt.Errorf("create contract: %w", err)
+		return CreateContractResponse{}, fmt.Errorf("create contract: %w", err)
 	}
 
-	return toCreateContractResult(response.Contract), nil
+	return toCreateContractResponse(response.Contract), nil
 }
